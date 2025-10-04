@@ -8,6 +8,7 @@ import { Label } from './ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { toast } from 'sonner';
 import { Calendar, Users, Shield } from 'lucide-react';
+import axios from 'axios'; // new import for API requests
 
 export default function LoginPage() {
   const { login, register } = useAuth();
@@ -21,29 +22,39 @@ export default function LoginPage() {
   });
   const [loading, setLoading] = useState(false);
 
+  // ------------------- LOGIN -------------------
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    
-    const success = await login(loginData.email, loginData.password);
-    if (success) {
+
+    try {
+      const response = await axios.post('http://localhost:5001/api/users/login', loginData);
+      const user = response.data;
+      login(user); // existing auth context logic
       toast.success('Logged in successfully!');
-    } else {
+    } catch (error: any) {
+      console.error(error);
       toast.error('Invalid credentials. Try: student@college.edu, clubadmin@college.edu, or admin@college.edu with password "password"');
     }
+
     setLoading(false);
   };
 
+  // ------------------- REGISTER -------------------
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    
-    const success = await register(registerData);
-    if (success) {
+
+    try {
+      const response = await axios.post('http://localhost:5001/api/users/register', registerData);
+      const newUser = response.data;
+      register(newUser); // existing auth context logic
       toast.success('Account created successfully!');
-    } else {
+    } catch (error: any) {
+      console.error(error);
       toast.error('Registration failed. Please try again.');
     }
+
     setLoading(false);
   };
 
@@ -71,7 +82,7 @@ export default function LoginPage() {
                 <TabsTrigger value="login">Login</TabsTrigger>
                 <TabsTrigger value="register">Register</TabsTrigger>
               </TabsList>
-              
+
               <TabsContent value="login" className="space-y-4">
                 <form onSubmit={handleLogin} className="space-y-4">
                   <div className="space-y-2">
@@ -100,7 +111,7 @@ export default function LoginPage() {
                     {loading ? 'Signing in...' : 'Sign In'}
                   </Button>
                 </form>
-                
+
                 <div className="mt-6 space-y-2">
                   <p className="text-sm text-muted-foreground">Demo accounts:</p>
                   <div className="grid gap-2 text-xs">
@@ -120,7 +131,7 @@ export default function LoginPage() {
                   </div>
                 </div>
               </TabsContent>
-              
+
               <TabsContent value="register" className="space-y-4">
                 <form onSubmit={handleRegister} className="space-y-4">
                   <div className="space-y-2">
